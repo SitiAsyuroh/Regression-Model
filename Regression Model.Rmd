@@ -1,0 +1,63 @@
+---
+title: "Regression Model"
+author: "Siti Asuroh"
+date: "13 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+data<-read.csv("data_input/crime.csv")
+data<-data[,-1]
+names(data) <- c("percent_m", "is_south", "mean_education", "police_exp60", "police_exp59", "labour_participation", "m_per1000f", "state_pop", "nonwhites_per1000", "unemploy_m24", "unemploy_m39", "gdp", "inequality", "prob_prison", "time_prison", "crime_rate")
+cor(data$crime_rate,data$percent_m)
+```
+```{r}
+#install.packages("GGally"), krn gak ada
+#install.packages("ggcorrplot")
+#ggcorrplot(cor(data))
+library(GGally)
+ggcorr(data)
+```
+#Bikin Modelnya
+```{r}
+Model1<-lm(crime_rate~.,data)
+summary(Model1)
+```
+#Mencari Model terbaik dgn Stepwise (Backward, Forward, Both)
+```{r}
+step(Model1,direction="backward")
+```
+#Model terbaik dr Metode Backward diambil dr nilai AIC terkecil
+```{r}
+Model2<-lm(formula = crime_rate ~ percent_m + mean_education + police_exp60 + 
+    m_per1000f + unemploy_m24 + unemploy_m39 + inequality + prob_prison, 
+    data = data)
+summary(Model2)
+```
+#klo Model udah dpt, cek Multikolinieritasnya
+```{r}
+library(car)
+vif(Model2)
+```
+#krn Nilai VIF nya <10 semua, maka asumsi Multikolinieritas terpenuhi.
+Skrg cek normalitasnya dgn Histogram
+```{r}
+hist(residuals(Model2))
+```
+#krn membentuk kurva lonceng, disimpulkan berdistribusi Normal.
+#skrg mau diplot Residualnya utk Uji Heteroskedastisitas
+```{r}
+plot(data$crime_rate,residuals(Model2))
+```
+#ketika plotnya tdk membentuk suatu pola maka uji asumsi Heteroskedastisitas terpenuhi
+
+Interpretasi :
+1. Modelyang terbentuk memperoleh nilai Adjusted R Square sebesar 0.7444,semua Uji Asumsi telah terpenuhi.
+2. Model yang terbentuk y = -6426.101 + 9.332percent_m + 18.012mean_education +                                  10.265police_exp60 + 2.234m_per1000f -6.087 unemploy_m24                             +18.735unemploy_m39+6.133inequality -3796.032prob_prison                                    
+
